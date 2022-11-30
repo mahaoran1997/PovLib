@@ -1,21 +1,29 @@
 #include <cstdlib>
 #include <iostream>
 #include<webserver/html.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include <FastLED.h>
+#include <sstream>
+
+using namespace std;
+
+void TemplateHtml::handle_OnConnect() {
+  *output_pattern_addr = 0;
+  current_pattern_num = 0;
+  Serial.println("All patterns: OFF");
+  server.send(200, "text/html", SendHTML(0)); 
+}
+
 
 void TemplateHtml::handle_buttons() {
     if(server.hasArg()) {
         String x = server.arg("button_num");
-        current_pattern_num = atoi(x);
-
+        stringstream ss;
+        ss << x;
+        ss >> current_pattern_num;
     }
-    Animation_1 = "Deactivate";
-    Animation_3 = "Deactivate";
-    Animation_2 = "Activate";
-    Serial.println("Pattern2: ON");
-    server.send(200, "text/html", SendHTML(2)); 
+    *output_pattern_addr = current_pattern_num;
+    Serial.println("Pattern %d: ON", current_pattern_num);
+    server.send(200, "text/html", this->SendHTML(current_pattern_num)); 
 }
 
 void TemplateHtml::handle_NotFound() {
@@ -23,7 +31,7 @@ void TemplateHtml::handle_NotFound() {
 }
 
 
-String SendHTML(uint8_t pattern_num){
+String TemplateHtml::SendHTML(uint8_t pattern_num){
     String ptr = "<!DOCTYPE html> <html>\n";
     ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
     ptr +="<title>LED Control</title>\n";
@@ -41,21 +49,29 @@ String SendHTML(uint8_t pattern_num){
     ptr +="<h1>ESP8266 Web Server</h1>\n";
     ptr +="<h3>Using Access Point(AP) Mode</h3>\n";
     
-    if(pattern_num==1)
-    {ptr +="<p>Pattern 1: </p><a class=\"button button-off\" href=\"/pattern1\">Activate</a>\n";}
-    else
-    {ptr +="<p>Pattern 1: </p><a class=\"button button-on\" href=\"/pattern1\">Activate</a>\n";}
 
-    if(pattern_num==2)
-    {ptr +="<p>Pattern 2: </p><a class=\"button button-off\" href=\"/pattern2\">Activate</a>\n";}
-    else
-    {ptr +="<p>Pattern 2: </p><a class=\"button button-on\" href=\"/pattern2\">Activate</a>\n";}
+    for (int i = 1; i <= button_num; i ++) {
+        string s;
+        stringstream ss;
+        ss << i;
+        ss >> s;
 
-    if(pattern_num==3)
-    {ptr +="<p>Pattern 3: </p><a class=\"button button-off\" href=\"/pattern3\">Activate</a>\n";}
-    else
-    {ptr +="<p>Pattern 3: </p><a class=\"button button-on\" href=\"/pattern3\">Activate</a>\n";}
+        if(i == current_pattern_num) {
+            ptr +="<p>";
+            ptr += texts[i];
+            ptr += ": </p><a class=\"button button-off\" href=\"/pattern?button_num=";
+            ptr += intStr;
+            ptr += "\">Activate</a>\n";
+        }
+        else {
+            ptr +="<p>Pattern ";
+            ptr += suffices[i];
+            ptr += ": </p><a class=\"button button-on\" href=\"/pattern?button_num=";
+            ptr += String(s);
+            ptr += "\">Activate</a>\n";
+        }
 
+    }
     ptr +="</body>\n";
     ptr +="</html>\n";
     return ptr;

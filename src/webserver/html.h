@@ -6,23 +6,24 @@ class WiFiServer {
 
 };
 
-
 class TemplateHtml {
 private:
     int button_num;
-    String* suffices;
     String* texts;
-    String ssid;
-    String passwd;
+    const char* ssid;
+    const char* passwd;
     int current_pattern_num;
+    int* output_pattern_addr;
     ESP8266WebServer server;
 public:
-    TemplateHtml(int _button_num, String* _suffices, String* _texts, _ssid, _passwd):button_num(_button_num), suffices(_suffices), texts(_texts), ssid(_ssid), passwd(_passwd), current_pattern_num(0), server(80) {
-        WiFi.softAP(ssid, password);
+    TemplateHtml(int _button_num, String* _texts, const char* _ssid, const char* _passwd, int* _output_pattern_addr):button_num(_button_num), texts(_texts), ssid(_ssid), passwd(_passwd), current_pattern_num(0), output_pattern_addr(_output_pattern_addr), server(80) {
+        WiFi.softAP(ssid, passwd);
         delay(300);
-        server.on("/", this.handle_OnConnect);
-        server.on("/button", this.handle_buttons);
-        server.onNotFound(this.handle_NotFound);
+        server.on("/", this->handle_OnConnect);
+        server.on("/button", this->handle_buttons);
+        server.onNotFound(this->handle_NotFound);
+        server.begin();
+        Serial.println("HTTP server started");
     }
     
     void handle_OnConnect();
