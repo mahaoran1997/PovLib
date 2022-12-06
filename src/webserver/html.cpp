@@ -1,10 +1,19 @@
 #include <cstdlib>
 #include <iostream>
-#include<webserver/html.h>
-#include <FastLED.h>
 #include <sstream>
+#include <FastLED.h>
+#include <html.h>
 
 using namespace std;
+
+int TemplateHtml::button_num = 0;
+String* TemplateHtml::texts = NULL;
+const char* TemplateHtml::ssid = NULL;
+const char* TemplateHtml::passwd = NULL;
+int TemplateHtml::current_pattern_num = 0;
+int* TemplateHtml::output_pattern_addr = NULL;
+ESP8266WebServer TemplateHtml::server(80);
+
 
 void TemplateHtml::handle_OnConnect() {
   *output_pattern_addr = 0;
@@ -15,19 +24,34 @@ void TemplateHtml::handle_OnConnect() {
 
 
 void TemplateHtml::handle_buttons() {
-    if(server.hasArg()) {
+    if(server.hasArg("button_num")) {
         String x = server.arg("button_num");
         stringstream ss;
-        ss << x;
+        ss << x.c_str();
         ss >> current_pattern_num;
     }
     *output_pattern_addr = current_pattern_num;
-    Serial.println("Pattern %d: ON", current_pattern_num);
-    server.send(200, "text/html", this->SendHTML(current_pattern_num)); 
+    String p = "Pattern ";
+
+    string s;
+    stringstream ss;
+    ss << current_pattern_num;
+    ss >> s;
+
+    p += s.c_str();
+    p += ": ON";
+    Serial.println(p.c_str());
+    server.send(200, "text/html", TemplateHtml::SendHTML(current_pattern_num)); 
+
+    Serial.println("HTML Sent");
 }
 
 void TemplateHtml::handle_NotFound() {
     server.send(404, "text/plain", "Not found");
+}
+
+void TemplateHtml::handle_client() {
+    server.handleClient();
 }
 
 
@@ -60,14 +84,14 @@ String TemplateHtml::SendHTML(uint8_t pattern_num){
             ptr +="<p>";
             ptr += texts[i];
             ptr += ": </p><a class=\"button button-off\" href=\"/pattern?button_num=";
-            ptr += intStr;
+            ptr += s.c_str();
             ptr += "\">Activate</a>\n";
         }
         else {
-            ptr +="<p>Pattern ";
-            ptr += suffices[i];
+            ptr +="<p>";
+            ptr += texts[i];
             ptr += ": </p><a class=\"button button-on\" href=\"/pattern?button_num=";
-            ptr += String(s);
+            ptr += s.c_str();
             ptr += "\">Activate</a>\n";
         }
 

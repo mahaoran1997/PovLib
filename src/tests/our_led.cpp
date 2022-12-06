@@ -6,7 +6,7 @@
 // #include "OTA.h"
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 
-#define LED_PIN     2 // LED is connected to the IO-0 of the ESP8266-01
+#define LED_PIN     13 // LED is connected to the IO-0 of the ESP8266-01
 #define NUM_LEDS    11 // We have 8 LEDs in the strip
 #define BRIGHTNESS  50 // set the brightness for the LEDs
 #define LED_TYPE    WS2812 // We are using WS2812B LEDs
@@ -162,6 +162,7 @@ void loop() {
   // }
   // ArduinoOTA.handle();
 // ------------------------------------------------------------------------------------------------------------------------------------------------
+  server.handleClient();
   if (Animation_1 == "Activate")
   {
     color_palette();
