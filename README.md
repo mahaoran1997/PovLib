@@ -1,4 +1,4 @@
-# POVLib: A Customizable Easy-to-use Library for Persistent Vision Display
+# POVLib: A Flexible Easy-to-use Library for Persistent Vision Display
 
 ## Group Members
 
