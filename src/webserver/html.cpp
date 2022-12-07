@@ -12,6 +12,7 @@ const char* TemplateHtml::ssid = NULL;
 const char* TemplateHtml::passwd = NULL;
 int TemplateHtml::current_pattern_num = 0;
 int* TemplateHtml::output_pattern_addr = NULL;
+char* TemplateHtml::text_to_display = NULL;
 ESP8266WebServer TemplateHtml::server(80);
 
 
@@ -30,6 +31,13 @@ void TemplateHtml::handle_buttons() {
         ss << x.c_str();
         ss >> current_pattern_num;
     }
+    if(server.hasArg("texts")) {
+        String x = server.arg("texts");
+        memset(text_to_display, 0, strlen(text_to_display));
+        for (int i = 0; i < x.length(); i++)
+            text_to_display[i] = x[i];
+    }
+    
     *output_pattern_addr = current_pattern_num;
     String p = "Pattern ";
 
@@ -70,8 +78,8 @@ String TemplateHtml::SendHTML(uint8_t pattern_num){
     ptr +="</style>\n";
     ptr +="</head>\n";
     ptr +="<body>\n";
-    ptr +="<h1>ESP8266 Web Server</h1>\n";
-    ptr +="<h3>Using Access Point(AP) Mode</h3>\n";
+    ptr +="<h1>POVLib Demo</h1>\n";
+    ptr +="<h3>Authors: Haoran Ma, Yu Bai</h3>\n";
     
 
     for (int i = 1; i <= button_num; i ++) {
@@ -83,16 +91,41 @@ String TemplateHtml::SendHTML(uint8_t pattern_num){
         if(i == current_pattern_num) {
             ptr +="<p>";
             ptr += texts[i];
-            ptr += ": </p><a class=\"button button-off\" href=\"/pattern?button_num=";
-            ptr += s.c_str();
-            ptr += "\">Activate</a>\n";
+            if (texts[i][0] == 'T') {
+                ptr += "<form action=\"/pattern\" target=\"_self\" method=\"get\">";
+                ptr += "<label for=\"texts\">Text to display:</label><br>";
+                ptr += "<input type=\"text\" id=\"texts\" name=\"texts\" value=\"hello\">";
+                ptr += "<input type=\"hidden\" id=\"button_num\" name=\"button_num\" value=\"";
+                ptr += s.c_str();
+                ptr += "\"><br><br>";
+                ptr += "<input type=\"submit\" value=\"Submit\">";
+                ptr += "</form>";
+            }
+            else {
+                ptr += ": </p><a class=\"button button-off\" href=\"/pattern?button_num=";
+                ptr += s.c_str();
+                ptr += "\">Activate</a>\n";
+            }
+
         }
         else {
             ptr +="<p>";
             ptr += texts[i];
-            ptr += ": </p><a class=\"button button-on\" href=\"/pattern?button_num=";
-            ptr += s.c_str();
-            ptr += "\">Activate</a>\n";
+            if (texts[i][0] == 'T') {
+                ptr += "<form action=\"/pattern\" target=\"_self\" method=\"get\">";
+                ptr += "<label for=\"texts\">Text to display:</label><br>";
+                ptr += "<input type=\"text\" id=\"texts\" name=\"texts\" value=\"hello\">";
+                ptr += "<input type=\"hidden\" id=\"button_num\" name=\"button_num\" value=\"";
+                ptr += s.c_str();
+                ptr += "\"><br><br>";
+                ptr += "<input type=\"submit\" value=\"Submit\">";
+                ptr += "</form>";
+            }
+            else {
+                ptr += ": </p><a class=\"button button-on\" href=\"/pattern?button_num=";
+                ptr += s.c_str();
+                ptr += "\">Activate</a>\n";
+            }
         }
 
     }
